@@ -105,9 +105,18 @@ export async function initSDK(): Promise<void> {
 
   _initPromise = (async () => {
     // Step 1: Initialize core SDK (TypeScript-only, no WASM)
+    const apiKey = import.meta.env.VITE_RUNANYWHEREAI_KEY;
+    if (!apiKey) {
+      // In the Web SDK, the API key is optional and primarily used for
+      // telemetry and remote configuration. Log clearly if it's missing.
+      // Inference will still run fully on-device.
+      console.error('VITE_RUNANYWHEREAI_KEY is not set. RunAnywhere will initialize without an API key.');
+    }
+
     await RunAnywhere.initialize({
       environment: SDKEnvironment.Development,
       debug: true,
+      ...(apiKey ? { apiKey } : {}),
     });
 
     // Step 2: Register backends (loads WASM automatically)

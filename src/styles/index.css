@@ -65,6 +65,106 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+ * PrivateCoder layout
+ * --------------------------------------------------------------------------- */
+
+.coder-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.coder-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.coder-status-label {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.coder-status-model strong {
+  color: var(--text);
+}
+
+.coder-input-section,
+.coder-output-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coder-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.coder-textarea {
+  min-height: 180px;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  outline: none;
+}
+
+.coder-textarea:focus {
+  border-color: var(--primary);
+}
+
+.coder-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.coder-output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.coder-output-loading {
+  font-size: 12px;
+  color: var(--primary);
+}
+
+.coder-output {
+  min-height: 140px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-y: auto;
+}
+
+.coder-output pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+/* ---------------------------------------------------------------------------
  * Tab bar
  * --------------------------------------------------------------------------- */
 
