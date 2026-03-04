@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { VoicePipeline, ModelCategory, ModelManager, AudioCapture, AudioPlayback, SpeechActivity } from '@runanywhere/web';
 import { VAD } from '@runanywhere/web-onnx';
+import { initONNX } from '../runanywhere';
 import { useModelLoader } from '../hooks/useModelLoader';
 import { ModelBanner } from './ModelBanner';
 
@@ -30,10 +31,12 @@ export function VoiceTab() {
     };
   }, []);
 
-  // Ensure all 4 models are loaded
+  // Ensure ONNX backend + all 4 models are loaded
   const ensureModels = useCallback(async (): Promise<boolean> => {
     setVoiceState('loading-models');
     setError(null);
+
+    await initONNX();
 
     const results = await Promise.all([
       vadLoader.ensure(),

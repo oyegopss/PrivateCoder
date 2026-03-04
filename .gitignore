@@ -1,7 +1,22 @@
+# Dependencies and build
 node_modules/
 dist/
 .vite/
-*.local
 *.tsbuildinfo
+
+# Environment and secrets (never commit)
+.env
+.env.local
+.env.*.local
+
+# Model files (downloaded at runtime; do not commit)
+*.gguf
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tooling and OS
 .playwright-mcp/
-*.png
+.DS_Store
+src/.DS_Store

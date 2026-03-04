@@ -1,13 +1,10 @@
 /**
  * RunAnywhere SDK initialization and model catalog.
  *
- * This module:
- * 1. Initializes the core SDK (TypeScript-only, no WASM)
- * 2. Registers the LlamaCPP backend (loads LLM/VLM WASM)
- * 3. Registers the ONNX backend (sherpa-onnx — STT/TTS/VAD)
- * 4. Registers the model catalog and wires up VLM worker
- *
- * Import this module once at app startup.
+ * initSDK()     — core SDK + LlamaCPP backend + model catalog + VLM worker.
+ *                 This is the fast path needed for Language models.
+ * initONNX()    — lazily registers the ONNX backend (sherpa-onnx — STT/TTS/VAD).
+ *                 Only called when voice features are used.
  */
 
 import {
@@ -20,7 +17,6 @@ import {
 } from '@runanywhere/web';
 
 import { LlamaCPP, VLMWorkerBridge } from '@runanywhere/web-llamacpp';
-import { ONNX } from '@runanywhere/web-onnx';
 
 // Vite bundles the worker as a standalone JS chunk and returns its URL.
 // @ts-ignore — Vite-specific ?worker&url query
@@ -93,40 +89,34 @@ const MODELS: CompactModelDef[] = [
   },
 ];
 
+const PREFERRED_LANGUAGE_MODEL_ID = import.meta.env.VITE_LANGUAGE_MODEL_ID as string | undefined;
+
 // ---------------------------------------------------------------------------
 // Initialization
 // ---------------------------------------------------------------------------
 
 let _initPromise: Promise<void> | null = null;
 
-/** Initialize the RunAnywhere SDK. Safe to call multiple times. */
+/** Initialize the RunAnywhere SDK + LlamaCPP backend. Safe to call multiple times. */
 export async function initSDK(): Promise<void> {
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    // Step 1: Initialize core SDK (TypeScript-only, no WASM)
     const apiKey = import.meta.env.VITE_RUNANYWHEREAI_KEY;
     if (!apiKey) {
-      // In the Web SDK, the API key is optional and primarily used for
-      // telemetry and remote configuration. Log clearly if it's missing.
-      // Inference will still run fully on-device.
       console.error('VITE_RUNANYWHEREAI_KEY is not set. RunAnywhere will initialize without an API key.');
     }
 
     await RunAnywhere.initialize({
       environment: SDKEnvironment.Development,
-      debug: true,
+      debug: false,
       ...(apiKey ? { apiKey } : {}),
     });
 
-    // Step 2: Register backends (loads WASM automatically)
     await LlamaCPP.register();
-    await ONNX.register();
 
-    // Step 3: Register model catalog
     RunAnywhere.registerModels(MODELS);
 
-    // Step 4: Wire up VLM worker
     VLMWorkerBridge.shared.workerUrl = vlmWorkerUrl;
     RunAnywhere.setVLMLoader({
       get isInitialized() { return VLMWorkerBridge.shared.isInitialized; },
@@ -139,10 +129,29 @@ export async function initSDK(): Promise<void> {
   return _initPromise;
 }
 
+let _onnxPromise: Promise<void> | null = null;
+
+/** Lazily register the ONNX backend (sherpa-onnx). Only needed for STT/TTS/VAD. */
+export async function initONNX(): Promise<void> {
+  await initSDK();
+  if (_onnxPromise) return _onnxPromise;
+
+  _onnxPromise = (async () => {
+    const { ONNX } = await import('@runanywhere/web-onnx');
+    await ONNX.register();
+  })();
+
+  return _onnxPromise;
+}
+
 /** Get acceleration mode after init. */
 export function getAccelerationMode(): string | null {
   return LlamaCPP.isRegistered ? LlamaCPP.accelerationMode : null;
 }
 
+export function getPreferredLanguageModelId(): string | undefined {
+  return PREFERRED_LANGUAGE_MODEL_ID;
+}
+
 // Re-export for convenience
-export { RunAnywhere, ModelManager, ModelCategory, VLMWorkerBridge };
+export { RunAnywhere, ModelManager, ModelCategory, LLMFramework, VLMWorkerBridge };

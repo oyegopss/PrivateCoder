@@ -1,130 +1,69 @@
-# RunAnywhere Web Starter App
+# PrivateCoder
 
-A minimal React + TypeScript starter app demonstrating **on-device AI in the browser** using the [`@runanywhere/web`](https://www.npmjs.com/package/@runanywhere/web) SDK. All inference runs locally via WebAssembly — no server, no API key, 100% private.
+**Engineering Intelligence. Fully Offline.**
 
-## Features
+## 🚀 Overview
 
-| Tab | What it does |
-|-----|-------------|
-| **Chat** | Stream text from an on-device LLM (LFM2 350M) |
-| **Vision** | Point your camera and describe what the VLM sees (LFM2-VL 450M) |
-| **Voice** | Speak naturally — VAD detects speech, STT transcribes, LLM responds, TTS speaks back |
+PrivateCoder is a fully on-device AI engineering assistant powered by the [RunAnywhere Web SDK](https://runanywhere.ai). It explains, refactors, and analyzes code in your browser—no backend, no cloud APIs, no API keys required for core inference.
 
-## Quick Start
+## 🔒 Why On-Device?
+
+- **100% Private** — Your code never leaves your machine.
+- **Zero API Cost** — No per-token billing or usage limits.
+- **Works Offline** — After the first model download, run without internet.
+- **WebGPU Accelerated** — Fast inference when supported by your browser.
+
+## 🧠 Architecture
+
+- **React + Vite** — Frontend and build.
+- **RunAnywhere Web SDK** — On-device model management and inference.
+- **LFM2 350M Q4_K_M** — Default language model (downloaded at runtime).
+- **WebGPU** — Hardware-accelerated inference where available.
+- **OPFS** — Browser storage for cached model weights.
+
+All inference runs locally in the browser. No model files are committed; the model is downloaded on first run.
+
+## ⚡ Performance
+
+| Scenario              | Expected time        |
+|-----------------------|----------------------|
+| First load (download) | 30–60s (network)    |
+| Cached load           | 5–10s                |
+| Typical inference     | ~4–6s                |
+
+## 🎥 Demo
+
+(Add demo video link here)
+
+## 🛠 Run Locally
+
+**Prerequisites:** Node.js ≥ 18, npm ≥ 9, modern browser (Chrome/Edge recommended) with WebAssembly and ideally WebGPU.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173). Models are downloaded on first use and cached in the browser's Origin Private File System (OPFS).
+Open the URL Vite prints (e.g. `http://localhost:5173`). Optional: copy `.env.example` to `.env` and add a RunAnywhere key for telemetry; inference works without it.
 
-## How It Works
+**Important:** Never commit `.env` or any file containing API keys. Model files (e.g. `.gguf`) are not in the repo and must not be committed; they are downloaded at runtime. If `.env` or a key was ever committed, rotate the key immediately.
 
-```
-@runanywhere/web (npm package)
-  ├── WASM engine (llama.cpp, whisper.cpp, sherpa-onnx)
-  ├── Model management (download, OPFS cache, load/unload)
-  └── TypeScript API (TextGeneration, STT, TTS, VAD, VLM, VoicePipeline)
-```
-
-The app imports everything from `@runanywhere/web`:
-
-```typescript
-import { RunAnywhere, SDKEnvironment } from '@runanywhere/web';
-import { TextGeneration, VLMWorkerBridge } from '@runanywhere/web-llamacpp';
-
-await RunAnywhere.initialize({ environment: SDKEnvironment.Development });
-
-// Stream LLM text
-const { stream } = await TextGeneration.generateStream('Hello!', { maxTokens: 200 });
-for await (const token of stream) { console.log(token); }
-
-// VLM: describe an image
-const result = await VLMWorkerBridge.shared.process(rgbPixels, width, height, 'Describe this.');
-```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 src/
-├── main.tsx              # React root
-├── App.tsx               # Tab navigation (Chat | Vision | Voice)
-├── runanywhere.ts        # SDK init + model catalog + VLM worker
-├── workers/
-│   └── vlm-worker.ts     # VLM Web Worker entry (2 lines)
-├── hooks/
-│   └── useModelLoader.ts # Shared model download/load hook
-├── components/
-│   ├── ChatTab.tsx        # LLM streaming chat
-│   ├── VisionTab.tsx      # Camera + VLM inference
-│   ├── VoiceTab.tsx       # Full voice pipeline
-│   └── ModelBanner.tsx    # Download progress UI
-└── styles/
-    └── index.css          # Dark theme CSS
+  assets/       # Static assets (e.g. logo)
+  components/   # React components
+  hooks/        # Custom hooks
+  pages/        # Home, Tool
+  styles/       # Global CSS
+  workers/      # VLM worker
+public/
+README.md
+package.json
+.gitignore
 ```
 
-## Adding Your Own Models
+## 📄 License
 
-Edit the `MODELS` array in `src/runanywhere.ts`:
-
-```typescript
-{
-  id: 'my-custom-model',
-  name: 'My Model',
-  repo: 'username/repo-name',           // HuggingFace repo
-  files: ['model.Q4_K_M.gguf'],         // Files to download
-  framework: LLMFramework.LlamaCpp,
-  modality: ModelCategory.Language,      // or Multimodal, SpeechRecognition, etc.
-  memoryRequirement: 500_000_000,        // Bytes
-}
-```
-
-Any GGUF model compatible with llama.cpp works for LLM/VLM. STT/TTS/VAD use sherpa-onnx models.
-
-## Deployment
-
-### Vercel
-
-```bash
-npm run build
-npx vercel --prod
-```
-
-The included `vercel.json` sets the required Cross-Origin-Isolation headers.
-
-### Netlify
-
-Add a `_headers` file:
-
-```
-/*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: credentialless
-```
-
-### Any static host
-
-Serve the `dist/` folder with these HTTP headers on all responses:
-
-```
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: credentialless
-```
-
-## Browser Requirements
-
-- Chrome 96+ or Edge 96+ (recommended: 120+)
-- WebAssembly (required)
-- SharedArrayBuffer (requires Cross-Origin Isolation headers)
-- OPFS (for persistent model cache)
-
-## Documentation
-
-- [SDK API Reference](https://docs.runanywhere.ai)
-- [npm package](https://www.npmjs.com/package/@runanywhere/web)
-- [GitHub](https://github.com/RunanywhereAI/runanywhere-sdks)
-
-## License
-
-MIT
+MIT. See `LICENSE` for details.

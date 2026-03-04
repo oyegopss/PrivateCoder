@@ -13,7 +13,8 @@
     "@runanywhere/web-llamacpp": "0.1.0-beta.10",
     "@runanywhere/web-onnx": "0.1.0-beta.10",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
