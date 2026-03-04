@@ -553,6 +553,9 @@ export function Tool() {
           topP: 0.9,
         });
 
+        // Allow UI to render "Thinking…" before inference blocks
+        await new Promise((r) => setTimeout(r, 0));
+
         let accumulated = '';
         let tokenCount = 0;
         for await (const token of stream) {
@@ -560,6 +563,8 @@ export function Tool() {
           tokenCount += 1;
           if (tokenCount % 5 === 0) {
             setOutput(accumulated);
+            // Yield to main thread so UI stays responsive during inference
+            await new Promise((r) => setTimeout(r, 0));
           }
         }
 
